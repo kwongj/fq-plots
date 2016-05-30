@@ -28,7 +28,7 @@ optional arguments:
   --centile %          Percentile filter for inserts eg. 95 = 95% most frequent insert sizes
   --locus LOCUS        Locus to display depth plots
   --coords START:END   Locus coordinates to display depth plots
-  --interval LEN       Interval to draw depth plots (default=1000)
+  --interval LEN       Interval (in bp) to draw depth plots (default=1000)
   --version            show program's version number and exit
 ```
 

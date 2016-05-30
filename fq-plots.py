@@ -197,7 +197,7 @@ parser.add_argument('--plot', metavar='insert|depth', help='Plot insert sizes ("
 parser.add_argument('--centile', metavar='%', nargs=1, type=int, help='Percentile filter for inserts eg. 95 = 95%% most frequent insert sizes')
 parser.add_argument('--locus', metavar='LOCUS', help='Locus to display depth plots')
 parser.add_argument('--coords', metavar='START:END', help='Locus coordinates to display depth plots')
-parser.add_argument('--interval', metavar='LEN', nargs=1, type=int, help='Interval to draw depth plots (default=1000)')
+parser.add_argument('--interval', metavar='LEN', nargs=1, type=int, help='Interval (in bp) to draw depth plots (default=1000)')
 parser.add_argument('--version', action='version', version=
 	'=====================================\n'
 	'%(prog)s v0.1\n'

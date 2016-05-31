@@ -90,7 +90,6 @@ def intervalDF(df, locus, start, end, n):
 
 # Run samtools depth
 def samtools_depth(bam):
-	print('Calculating read depths and plotting histograms ...')
 	samtoolsDEPTH = check_output(['samtools', 'depth', '-aa', bam])
 	readDEPTHS = StringIO.StringIO()
 	readDEPTHS.write(samtoolsDEPTH)
@@ -113,7 +112,6 @@ def percentile(cent, df):
 
 # Run samtools stats
 def samtools_stats(bam):
-	print('Calculating insert size stats and plotting histogram ...')
 	samtoolsSTATS = check_output(['samtools', 'stats', bam])
 	readSTATS = StringIO.StringIO()
 	readSTATS.write(samtoolsSTATS)
@@ -178,6 +176,8 @@ def draw_hist(df):
 	width = columns - 20
 	# Retrieve maximum count value
 	maxsize = df['Count'].max()
+	if maxsize < 1:
+		err('ERROR: No read coverage across region specified.')
 	# Draw histogram scaled to terminal size
 	for index, row in df.iterrows():
 		key = row['Key']
@@ -208,7 +208,48 @@ args = parser.parse_args()
 
 # Calculate stats on dataframe and print histogram
 bam = str(args.input[0])
-if str.lower(args.plot) == 'depth':
+if args.plot:
+	if str.lower(args.plot) == 'depth':
+		if args.interval:
+			interval = args.interval[0]
+		else:
+			interval = 1000
+		start = None
+		end = None
+		if args.coords:
+			if not args.locus:
+				err('ERROR: Please specify locus with --locus.')
+			coords = str(args.coords)
+			start = check_coords(coords, interval)[0]
+			end = check_coords(coords, interval)[1]
+		print('Calculating read depths and plotting histograms ...')
+		df_DEP1 = samtools_depth(bam)
+		results = {}
+		loci = sorted(set(df_DEP1['Locus']))
+		if args.locus:
+			loci = [args.locus]
+		df_DEP2 = intervalDF(df_DEP1, loci[0], start, end, interval)
+		for locus in loci:
+			banner()
+			print('LOCUS:' + '\t' + locus)
+			banner()
+			df_DEP3 = df_DEP2.loc[df_DEP2['Locus'] == locus]
+			draw_hist(df_DEP3)
+			df_DEP4 = df_DEP1.loc[df_DEP1['Locus'] == locus]
+			results[locus] = stats(df_DEP4, 'Count')
+		results['All'] = stats(df_DEP1, 'Count')
+		for k in sorted(results):
+			read_depth_stats(k, results[k])
+	elif str.lower(args.plot) == 'insert':
+		print('Calculating insert size stats and plotting histogram ...')
+		df_IS = samtools_stats(bam)
+		df_IS1 = df_IS[0]
+		df_IS2 = df_IS[1]
+		results_IS = stats(df_IS2, 'Key')
+		draw_hist(df_IS1)
+		insert_size_stats(results_IS)
+else:
+	print('Calculating read depths ...')
 	if args.interval:
 		interval = args.interval[0]
 	else:
@@ -228,33 +269,14 @@ if str.lower(args.plot) == 'depth':
 		loci = [args.locus]
 	df_DEP2 = intervalDF(df_DEP1, loci[0], start, end, interval)
 	for locus in loci:
-		banner()
-		print('LOCUS:' + '\t' + locus)
-		banner()
-		df_DEP3 = df_DEP2.loc[df_DEP2['Locus'] == locus]
-		draw_hist(df_DEP3)
 		df_DEP4 = df_DEP1.loc[df_DEP1['Locus'] == locus]
 		results[locus] = stats(df_DEP4, 'Count')
 	results['All'] = stats(df_DEP1, 'Count')
 	for k in sorted(results):
 		read_depth_stats(k, results[k])
-elif str.lower(args.plot) == 'insert':
-	df_IS = samtools_stats(bam)
-	df_IS1 = df_IS[0]
-	df_IS2 = df_IS[1]
-	results_IS = stats(df_IS2, 'Key')
-	draw_hist(df_IS1)
-	insert_size_stats(results_IS)
-else:
-	print('Calculating read depths ...')
-	df_DEP = samtools_depth(bam)
-	df_DEP1 = df_DEP[0]
-	df_DEP2 = df_DEP[1]
-	results_DEP = stats(df_DEP1, 'Count')
 	print('Calculating insert size stats ...')
 	df_IS = samtools_stats(bam)
 	df_IS1 = df_IS[0]
 	df_IS2 = df_IS[1]
 	results_IS = stats(df_IS2, 'Key')
-	read_depth_stats(results_DEP)
 	insert_size_stats(results_IS)

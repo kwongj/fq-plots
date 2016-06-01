@@ -38,5 +38,4 @@ Please submit via the [GitHub issues page](https://github.com/kwongj/fq-plots/is
 
 ##Software Licence
 
-[GPLv3](https://github.com/kwongj/fq-plots/blob/master/LICENCE)
-
+[GPLv3](https://github.com/kwongj/fq-plots/blob/master/LICENSE)
